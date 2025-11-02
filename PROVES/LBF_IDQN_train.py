@@ -3,46 +3,15 @@
 # ===========================
 import lbforaging
 import gymnasium as gym
-# import torch
-# import torch.nn as nn
-# import torch.optim as optim
-# import numpy as np
-# from collections import deque, namedtuple
-# import matplotlib.pyplot as plt
-# import wandb
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+from collections import deque, namedtuple
+import matplotlib.pyplot as plt
+import wandb
 
 from LBF_constants import *
-
-# ===========================
-# Environment setup
-# ===========================
-env_conf = "Foraging-8x8-2p-3f-v3"
-env = gym.make(env_conf)
-
-print(LR)
-
-'''
-# ===========================
-# WandB initialization
-# ===========================
-run = wandb.init(
-    project="LBF_proves",
-    config={
-        "env_name": env_conf,
-        'learning_rate': LR,
-        'memory_size': MEMORY_SIZE,
-        'max_episodes': MAX_EPISODES,
-        'epsilon_start': EPSILON_START,
-        'epsilon_decay': EPSILON_DECAY,
-        'epsilon_min': EPSILON_MIN,
-        'gamma': GAMMA,
-        'batch_size': BATCH_SIZE,
-        'burn_in': BURN_IN,
-        
-    },
-    sync_tensorboard=True,
-    save_code=True,
-)
 
 
 # ===========================
@@ -205,15 +174,15 @@ def train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE):
         if ep % 10 == 0:
             print(f"Episode {ep}, Avg rewards: {avg_rewards}")
 
-        for i in range(num_agents):
-            wandb.log({f"agent_{i}_loss": agent.last_loss}, step=total_env_steps)
+        # for i in range(num_agents):
+        #     wandb.log({f"agent_{i}_loss": agent.last_loss}, step=total_env_steps)
 
         for i in range(num_agents):
             wandb.log({
                 f"agent_{i}_total_reward": total_rewards[i],
                 f"agent_{i}_avg_reward": avg_rewards[i],
                 f"agent_{i}_epsilon": agents[i].epsilon,
-                # f"agent_{i}_loss": agents[i].last_loss if agents[i].last_loss is not None else 0.0
+                f"agent_{i}_loss": agents[i].last_loss if agents[i].last_loss is not None else 0.0
             }, step=ep)
 
         # -------- Save model checkpoints every 1000 episodes --------
@@ -231,27 +200,55 @@ def train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE):
 
     return agents, rewards_history
 
-# ===========================
-# Run training
-# ===========================
-agents, rewards_history = train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE)
+if __name__ == "__main__":
 
-# ===========================
-# Optional: Plot learning curves
-# ===========================
-# plt.figure(figsize=(10, 5))
-# for i in range(env.unwrapped.n_agents):
-#     plt.plot(rewards_history[i], label=f"Agent {i}")
-# plt.xlabel("Episode")
-# plt.ylabel("Total Reward")
-# plt.title("Learning Curves")
-# plt.legend()
-# plt.show()
+    # ===========================
+    # Environment setup
+    # ===========================
+    env_conf = "Foraging-8x8-2p-3f-v3"
+    env = gym.make(env_conf)
 
-# ===========================
-# Cleanup
-# ===========================
-wandb.finish()
-env.close()
+    # ===========================
+    # WandB initialization
+    # ===========================
+    run = wandb.init(
+        project="LBF_proves",
+        config={
+            "env_name": env_conf,
+            'learning_rate': LR,
+            'memory_size': MEMORY_SIZE,
+            'max_episodes': MAX_EPISODES,
+            'epsilon_start': EPSILON_START,
+            'epsilon_decay': EPSILON_DECAY,
+            'epsilon_min': EPSILON_MIN,
+            'gamma': GAMMA,
+            'batch_size': BATCH_SIZE,
+            'burn_in': BURN_IN,
+            
+        },
+        sync_tensorboard=True,
+        save_code=True,
+    )
+    # ===========================
+    # Run training
+    # ===========================
+    agents, rewards_history = train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE)
 
-'''
+    # ===========================
+    # Plot learning curves
+    # ===========================
+    # plt.figure(figsize=(10, 5))
+    # for i in range(env.unwrapped.n_agents):
+    #     plt.plot(rewards_history[i], label=f"Agent {i}")
+    # plt.xlabel("Episode")
+    # plt.ylabel("Total Reward")
+    # plt.title("Learning Curves")
+    # plt.legend()
+    # plt.show()
+
+    # ===========================
+    # Cleanup
+    # ===========================
+    wandb.finish()
+    env.close()
+
