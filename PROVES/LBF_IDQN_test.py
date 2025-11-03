@@ -73,7 +73,7 @@ def plot_lbf_observation_tuple(obs, env_conf, save_path):
 # ===========================
 # Environment setup
 # ===========================
-env_conf = "Foraging-8x8-2p-3f-v3"
+env_conf = "Foraging-8x8-2p-4f-v3"
 env = gym.make(env_conf)
 num_agents = env.unwrapped.n_agents
 
@@ -86,7 +86,7 @@ for i in range(num_agents):
     act_dim = env.action_space[i].n
     agent = IQLAgent(obs_dim, act_dim, device='cpu')
     
-    checkpoint_path = f"./checkpoints/agent_{i}_ep4700.pt"
+    checkpoint_path = f"./checkpoints/agent_{i}_ep10000.pt"
     agent.qnet.load_state_dict(torch.load(checkpoint_path, map_location='cpu'))
     agents.append(agent)
 
@@ -102,7 +102,7 @@ frame_paths = []
 
 frame_idx = 0
 while not done:
-    actions = [agent.qnet.get_action(obs[i].flatten(), epsilon=0.0) for i, agent in enumerate(agents)]
+    actions = [agent.qnet.get_action(obs[i].flatten(), epsilon=0.05) for i, agent in enumerate(agents)]
     print(actions)
     next_obs, rewards, terminated, truncated, infos = env.step(actions)
     done = np.any(terminated) or np.any(truncated)

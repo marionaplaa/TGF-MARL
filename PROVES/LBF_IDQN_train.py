@@ -12,6 +12,16 @@ import matplotlib.pyplot as plt
 import wandb
 
 from LBF_constants import *
+'''LR = 1e-3
+MEMORY_SIZE = 5000
+MAX_EPISODES = 10000
+EPSILON_START = 1.0
+EPSILON_DECAY = 0.9995
+EPSILON_MIN = 0.05
+GAMMA = 0.99
+BATCH_SIZE = 64
+BURN_IN = 4000
+DEVICE = 'cpu'''
 
 
 # ===========================
@@ -23,7 +33,7 @@ class DQN(nn.Module):
         super(DQN, self).__init__()
         self.device = device
 
-        self.model = nn.Sequential(
+        self.net = nn.Sequential(   #self.model
             nn.Linear(obs_dim, 128),
             nn.ReLU(),
             nn.Linear(128, 128),
@@ -35,18 +45,40 @@ class DQN(nn.Module):
         if device == 'cuda':
             self.model.cuda()
         
-    def forward(self, x):
-        x = torch.FloatTensor(x).to(self.device)
-        if x.ndim > 2:
-            x = x.view(x.size(0), -1)
-        return self.model(x)
+    # def forward(self, x):
+    #     x = torch.FloatTensor(x).to(self.device)
+    #     if x.ndim > 2:
+    #         x = x.view(x.size(0), -1)
+    #     return self.model(x)
     
+    def forward(self, x):
+    # assume x is a numpy array or torch tensor
+        if isinstance(x, np.ndarray):
+            x = torch.from_numpy(x).float().to(self.device)
+        else:
+            x = x.to(self.device).float()
+        if x.dim() == 1:
+            x = x.unsqueeze(0)   # make batch
+        x = x.view(x.size(0), -1)
+        return self.net(x)
+    
+    # def get_action(self, state, epsilon=0.05):
+    #     if np.random.random() < epsilon:
+    #         return np.random.randint(self.model[-1].out_features)
+    #     else:
+    #         qvals = self.forward(state)
+    #         return torch.argmax(qvals).item()
+        
     def get_action(self, state, epsilon=0.05):
         if np.random.random() < epsilon:
-            return np.random.randint(self.model[-1].out_features)
+            return np.random.randint(self.net[-1].out_features)
         else:
-            qvals = self.forward(state)
-            return torch.argmax(qvals).item()
+            self.eval()
+            with torch.no_grad():
+                qvals = self.forward(state)    # shape (1, A)
+                action = int(qvals.argmax(dim=1).item())
+            self.train()
+            return action
 
 # ===========================
 # Replay Buffer
@@ -60,11 +92,22 @@ class ReplayBuffer:
     def append(self, state, action, reward, done, next_state):
         self.buffer.append(self.transition(state, action, reward, done, next_state))
     
+    # def sample(self, batch_size):
+    #     idxs = np.random.choice(len(self.buffer), batch_size, replace=False)
+    #     batch = [self.buffer[i] for i in idxs]
+    #     return zip(*batch)
+
     def sample(self, batch_size):
         idxs = np.random.choice(len(self.buffer), batch_size, replace=False)
         batch = [self.buffer[i] for i in idxs]
-        return zip(*batch)
-    
+        states = np.stack([b.state for b in batch])
+        actions = np.array([b.action for b in batch])
+        rewards = np.array([b.reward for b in batch], dtype=np.float32)
+        dones = np.array([b.done for b in batch], dtype=np.uint8)
+        next_states = np.stack([b.next_state for b in batch])
+        return states, actions, rewards, dones, next_states
+
+        
     def __len__(self):
         return len(self.buffer)
 
@@ -75,37 +118,76 @@ class IQLAgent:
     """Independent Q-Learning agent for multi-agent environments."""
     def __init__(self, obs_dim, act_dim, device=DEVICE, lr=LR, gamma=GAMMA, epsilon=EPSILON_START, eps_decay=EPSILON_DECAY):
         self.qnet = DQN(obs_dim, act_dim, lr, device)
+        self.target_qnet = DQN(obs_dim, act_dim, lr, device)  ##########################3
+        self.target_qnet.load_state_dict(self.qnet.state_dict())  ###########################
+        self.target_qnet.eval() ####################
+
         self.buffer = ReplayBuffer()
         self.gamma = gamma
         self.epsilon = epsilon
         self.eps_decay = eps_decay
         self.last_loss = None  # Store last loss for logging
     
+        self.update_count = 0  ##################
+
+    def soft_update_target(self, tau=0.01):
+        # tau=1.0 -> hard update
+        for targ, src in zip(self.target_qnet.parameters(), self.qnet.parameters()):
+            targ.data.copy_(tau * src.data + (1.0 - tau) * targ.data)
+
     def store_transition(self, state, action, reward, done, next_state):
         self.buffer.append(state, action, reward, done, next_state)
     
+    # def update(self, batch_size=BATCH_SIZE):
+    #     if len(self.buffer) < batch_size:
+    #         return
+    #     states, actions, rewards, dones, next_states = self.buffer.sample(batch_size)
+    #     states = torch.FloatTensor(states).to(self.qnet.device)
+    #     actions = torch.LongTensor(actions).unsqueeze(-1).to(self.qnet.device)
+    #     rewards = torch.FloatTensor(rewards).to(self.qnet.device)
+    #     dones = torch.BoolTensor(dones).to(self.qnet.device)
+    #     next_states = torch.FloatTensor(next_states).to(self.qnet.device)
+        
+    #     qvals = self.qnet(states).gather(1, actions)
+    #     q_next = self.qnet(next_states).max(dim=1)[0].detach()
+    #     q_next[dones] = 0
+    #     target = rewards + self.gamma * q_next
+        
+    #     loss = nn.MSELoss()(qvals.squeeze(), target)
+    #     self.qnet.optimizer.zero_grad()
+    #     loss.backward()
+    #     self.qnet.optimizer.step()
+
+    #     # Store last loss
+    #     self.last_loss = loss.item()
     def update(self, batch_size=BATCH_SIZE):
         if len(self.buffer) < batch_size:
             return
         states, actions, rewards, dones, next_states = self.buffer.sample(batch_size)
-        states = torch.FloatTensor(states).to(self.qnet.device)
-        actions = torch.LongTensor(actions).unsqueeze(-1).to(self.qnet.device)
-        rewards = torch.FloatTensor(rewards).to(self.qnet.device)
-        dones = torch.BoolTensor(dones).to(self.qnet.device)
-        next_states = torch.FloatTensor(next_states).to(self.qnet.device)
-        
-        qvals = self.qnet(states).gather(1, actions)
-        q_next = self.qnet(next_states).max(dim=1)[0].detach()
-        q_next[dones] = 0
-        target = rewards + self.gamma * q_next
-        
-        loss = nn.MSELoss()(qvals.squeeze(), target)
+        states = torch.from_numpy(states).float().to(self.qnet.device)
+        actions = torch.from_numpy(actions).long().unsqueeze(1).to(self.qnet.device)
+        rewards = torch.from_numpy(rewards).float().to(self.qnet.device)
+        dones = torch.from_numpy(dones).float().to(self.qnet.device)  # 1.0 if done, 0.0 otherwise
+        next_states = torch.from_numpy(next_states).float().to(self.qnet.device)
+
+        q_vals = self.qnet(states).gather(1, actions).squeeze(1)  # shape (B,)
+        with torch.no_grad():
+            q_next = self.target_qnet(next_states).max(dim=1)[0]  # (B,)
+
+        target = rewards + self.gamma * q_next * (1.0 - dones)
+
+        loss = nn.MSELoss()(q_vals, target)
         self.qnet.optimizer.zero_grad()
         loss.backward()
         self.qnet.optimizer.step()
 
-        # Store last loss
-        self.last_loss = loss.item()
+        self.last_loss = float(loss.item())
+        # update target occasionally / soft update
+        # self.update_count += 1
+        # if self.update_count % 100 == 0:
+        #     self.soft_update_target(tau=0.1)  
+        self.update_count += 1
+        self.soft_update_target(tau=0.05)
 
 # ===========================
 # Multi-Agent IQL Training Loop
@@ -174,8 +256,6 @@ def train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE):
         if ep % 10 == 0:
             print(f"Episode {ep}, Avg rewards: {avg_rewards}")
 
-        # for i in range(num_agents):
-        #     wandb.log({f"agent_{i}_loss": agent.last_loss}, step=total_env_steps)
 
         for i in range(num_agents):
             wandb.log({
@@ -183,11 +263,11 @@ def train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE):
                 f"agent_{i}_avg_reward": avg_rewards[i],
                 f"agent_{i}_epsilon": agents[i].epsilon,
                 f"agent_{i}_loss": agents[i].last_loss if agents[i].last_loss is not None else 0.0
-            }, step=ep)
+            })
 
         # -------- Save model checkpoints every 1000 episodes --------
         import os
-        if ep % 100 == 0:
+        if ep % 500 == 0:
             save_dir = "./checkpoints"
             os.makedirs(save_dir, exist_ok=True)
             for i, agent in enumerate(agents):
@@ -205,7 +285,7 @@ if __name__ == "__main__":
     # ===========================
     # Environment setup
     # ===========================
-    env_conf = "Foraging-8x8-2p-3f-v3"
+    env_conf = "Foraging-8x8-2p-4f-v3"
     env = gym.make(env_conf)
 
     # ===========================
