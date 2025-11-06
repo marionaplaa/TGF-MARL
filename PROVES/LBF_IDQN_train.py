@@ -29,11 +29,12 @@ DEVICE = 'cpu'''
 # ===========================
 class DQN(nn.Module):
     """A simple 3-layer fully connected Deep Q-Network."""
-    def __init__(self, obs_dim, act_dim, lr=LR, device=DEVICE):
+    def __init__(self, obs_dim, act_dim, device="cpu"):
         super(DQN, self).__init__()
-        self.device = device
+        self.device = torch.device(device)
+        self.act_dim = act_dim
 
-        self.net = nn.Sequential(   #self.model
+        self.net = nn.Sequential(
             nn.Linear(obs_dim, 128),
             nn.ReLU(),
             nn.Linear(128, 128),
@@ -41,37 +42,23 @@ class DQN(nn.Module):
             nn.Linear(128, act_dim)
         )
 
-        self.optimizer = optim.Adam(self.parameters(), lr=lr)
-        if device == 'cuda':
-            self.model.cuda()
-        
-    # def forward(self, x):
-    #     x = torch.FloatTensor(x).to(self.device)
-    #     if x.ndim > 2:
-    #         x = x.view(x.size(0), -1)
-    #     return self.model(x)
-    
+        self.to(self.device)
+
     def forward(self, x):
-    # assume x is a numpy array or torch tensor
+        # accept numpy array or torch tensor
         if isinstance(x, np.ndarray):
             x = torch.from_numpy(x).float().to(self.device)
         else:
             x = x.to(self.device).float()
         if x.dim() == 1:
-            x = x.unsqueeze(0)   # make batch
+            x = x.unsqueeze(0)
         x = x.view(x.size(0), -1)
         return self.net(x)
-    
-    # def get_action(self, state, epsilon=0.05):
-    #     if np.random.random() < epsilon:
-    #         return np.random.randint(self.model[-1].out_features)
-    #     else:
-    #         qvals = self.forward(state)
-    #         return torch.argmax(qvals).item()
-        
+
     def get_action(self, state, epsilon=0.05):
+        # return int (action index)
         if np.random.random() < epsilon:
-            return np.random.randint(self.net[-1].out_features)
+            return np.random.randint(self.act_dim)
         else:
             self.eval()
             with torch.no_grad():
@@ -116,78 +103,78 @@ class ReplayBuffer:
 # ===========================
 class IQLAgent:
     """Independent Q-Learning agent for multi-agent environments."""
-    def __init__(self, obs_dim, act_dim, device=DEVICE, lr=LR, gamma=GAMMA, epsilon=EPSILON_START, eps_decay=EPSILON_DECAY):
-        self.qnet = DQN(obs_dim, act_dim, lr, device)
-        self.target_qnet = DQN(obs_dim, act_dim, lr, device)  ##########################3
-        self.target_qnet.load_state_dict(self.qnet.state_dict())  ###########################
-        self.target_qnet.eval() ####################
+    def __init__(self, obs_dim, act_dim, device="cpu", lr=LR, gamma=GAMMA, epsilon=EPSILON_START, eps_decay=EPSILON_DECAY):
+        self.device = torch.device(device)
+        self.qnet = DQN(obs_dim, act_dim, device=device)
+        self.target_qnet = DQN(obs_dim, act_dim, device=device)
+        self.target_qnet.load_state_dict(self.qnet.state_dict())
+        self.target_qnet.eval()
+
+        self.optimizer = optim.Adam(self.qnet.parameters(), lr=lr)
 
         self.buffer = ReplayBuffer()
         self.gamma = gamma
         self.epsilon = epsilon
         self.eps_decay = eps_decay
-        self.last_loss = None  # Store last loss for logging
-    
-        self.update_count = 0  ##################
+        self.last_loss = None
+        self.update_count = 0
 
     def soft_update_target(self, tau=0.01):
-        # tau=1.0 -> hard update
+        # Polyak averaging: target = (1-tau)*target + tau*source
         for targ, src in zip(self.target_qnet.parameters(), self.qnet.parameters()):
-            targ.data.copy_(tau * src.data + (1.0 - tau) * targ.data)
+            targ.data.copy_(targ.data * (1.0 - tau) + src.data * tau)
 
     def store_transition(self, state, action, reward, done, next_state):
         self.buffer.append(state, action, reward, done, next_state)
-    
-    # def update(self, batch_size=BATCH_SIZE):
-    #     if len(self.buffer) < batch_size:
-    #         return
-    #     states, actions, rewards, dones, next_states = self.buffer.sample(batch_size)
-    #     states = torch.FloatTensor(states).to(self.qnet.device)
-    #     actions = torch.LongTensor(actions).unsqueeze(-1).to(self.qnet.device)
-    #     rewards = torch.FloatTensor(rewards).to(self.qnet.device)
-    #     dones = torch.BoolTensor(dones).to(self.qnet.device)
-    #     next_states = torch.FloatTensor(next_states).to(self.qnet.device)
-        
-    #     qvals = self.qnet(states).gather(1, actions)
-    #     q_next = self.qnet(next_states).max(dim=1)[0].detach()
-    #     q_next[dones] = 0
-    #     target = rewards + self.gamma * q_next
-        
-    #     loss = nn.MSELoss()(qvals.squeeze(), target)
-    #     self.qnet.optimizer.zero_grad()
-    #     loss.backward()
-    #     self.qnet.optimizer.step()
 
-    #     # Store last loss
-    #     self.last_loss = loss.item()
-    def update(self, batch_size=BATCH_SIZE):
+    def update(self, batch_size=BATCH_SIZE, grad_clip=None):
         if len(self.buffer) < batch_size:
             return
         states, actions, rewards, dones, next_states = self.buffer.sample(batch_size)
-        states = torch.from_numpy(states).float().to(self.qnet.device)
-        actions = torch.from_numpy(actions).long().unsqueeze(1).to(self.qnet.device)
-        rewards = torch.from_numpy(rewards).float().to(self.qnet.device)
-        dones = torch.from_numpy(dones).float().to(self.qnet.device)  # 1.0 if done, 0.0 otherwise
-        next_states = torch.from_numpy(next_states).float().to(self.qnet.device)
+        states = torch.from_numpy(states).float().to(self.device)
+        actions = torch.from_numpy(actions).long().unsqueeze(1).to(self.device)
+        rewards = torch.from_numpy(rewards).float().to(self.device)
+        dones = torch.from_numpy(dones).float().to(self.device)
+        next_states = torch.from_numpy(next_states).float().to(self.device)
 
-        q_vals = self.qnet(states).gather(1, actions).squeeze(1)  # shape (B,)
+        q_vals = self.qnet(states).gather(1, actions).squeeze(1)  # (B,)
         with torch.no_grad():
             q_next = self.target_qnet(next_states).max(dim=1)[0]  # (B,)
-
         target = rewards + self.gamma * q_next * (1.0 - dones)
 
         loss = nn.MSELoss()(q_vals, target)
-        self.qnet.optimizer.zero_grad()
+        self.optimizer.zero_grad()
         loss.backward()
-        self.qnet.optimizer.step()
+        if grad_clip is not None:
+            torch.nn.utils.clip_grad_norm_(self.qnet.parameters(), grad_clip)
+        self.optimizer.step()
 
         self.last_loss = float(loss.item())
-        # update target occasionally / soft update
-        # self.update_count += 1
-        # if self.update_count % 100 == 0:
-        #     self.soft_update_target(tau=0.1)  
+
+        # soft update occasionally (you may want to do this every N updates instead)
         self.update_count += 1
-        self.soft_update_target(tau=0.05)
+        # Example: soft update every update with small tau OR hard update every N updates
+        # Here we use a small tau each update:
+        self.soft_update_target(tau=0.01)
+
+def run_test_episode(env, agents, device="cpu", render=False):
+    """Run a single greedy (epsilon=0) evaluation episode."""
+    num_agents = env.unwrapped.n_agents
+    obs, _ = env.reset()
+    done = False
+    total_rewards = [0.0] * num_agents
+
+    while not done:
+        actions = [agent.qnet.get_action(obs[i].flatten(), epsilon=0.0) for i, agent in enumerate(agents)]
+        next_obs, rewards, terminated, truncated, infos = env.step(actions)
+        done = np.any(terminated) or np.any(truncated)
+
+        for i in range(num_agents):
+            total_rewards[i] += rewards[i]
+
+        obs = next_obs
+
+    return total_rewards
 
 # ===========================
 # Multi-Agent IQL Training Loop
@@ -264,6 +251,14 @@ def train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE):
                 f"agent_{i}_epsilon": agents[i].epsilon,
                 f"agent_{i}_loss": agents[i].last_loss if agents[i].last_loss is not None else 0.0
             })
+
+        # -------- Optional Test Episode every 500 eps --------
+        if ep % 500 == 0:
+            test_rewards = run_test_episode(env, agents, device=device)
+            print(f"[TEST] Episode {ep}: mean test reward = {np.mean(test_rewards):.2f}, per agent = {test_rewards}")
+            for i, r in enumerate(test_rewards):
+                wandb.log({f"agent_{i}_test_reward": r, "episode": ep})
+
 
         # -------- Save model checkpoints every 1000 episodes --------
         import os
