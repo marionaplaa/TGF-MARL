@@ -2,6 +2,7 @@ import re
 import os
 import torch
 import gymnasium as gym
+import lbforaging
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')  # <-- This is key for headless environments
@@ -9,7 +10,8 @@ import matplotlib.pyplot as plt
 
 import imageio
 
-from LBF_IDQN_train import IQLAgent
+# from LBF_IDQN_train import IQLAgent
+from iql import IQLTrainer
 
 # ===========================
 # Function to plot observation and save as PNG
@@ -73,7 +75,7 @@ def plot_lbf_observation_tuple(obs, env_conf, save_path):
 # ===========================
 # Environment setup
 # ===========================
-env_conf = "Foraging-8x8-2p-4f-v3"
+env_conf = "Foraging-8x8-2p-3f-v3"
 env = gym.make(env_conf)
 num_agents = env.unwrapped.n_agents
 
@@ -86,7 +88,7 @@ for i in range(num_agents):
     act_dim = env.action_space[i].n
     agent = IQLAgent(obs_dim, act_dim, device='cpu')
     
-    checkpoint_path = f"./checkpoints/agent_{i}_ep10000.pt"
+    checkpoint_path = f"./iql_ddqn_lbf_agent{i}_ep1500.pth"
     agent.qnet.load_state_dict(torch.load(checkpoint_path, map_location='cpu'))
     agents.append(agent)
 
