@@ -14,7 +14,7 @@ from MAA2C import MAX_EPISODES
 ENV_CONF = "Foraging-8x8-2p-3f-v3"
 CHECKPOINT_DIR = "./checkpoints"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-NUM_EPISODES = 100      # set to 1 for one episode (with GIF)
+NUM_EPISODES = 1      # set to 1 for one episode (with GIF)
 SAVE_GIF = (NUM_EPISODES == 1)  # automatically make GIF only if one episode
 GIF_PATH = "./episode.gif"
 FRAME_DIR = "./frames"
