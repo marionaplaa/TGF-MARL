@@ -1,6 +1,4 @@
-# ===========================
-# Imports and setup
-# ===========================
+
 import lbforaging
 import gymnasium as gym
 import torch
@@ -24,9 +22,7 @@ BURN_IN = 4000
 DEVICE = 'cpu'''
 
 
-# ===========================
-# Deep Q-Network (DQN)
-# ===========================
+
 class DQN(nn.Module):
     """A simple 3-layer fully connected Deep Q-Network."""
     def __init__(self, obs_dim, act_dim, device="cpu"):
@@ -67,9 +63,7 @@ class DQN(nn.Module):
             self.train()
             return action
 
-# ===========================
-# Replay Buffer
-# ===========================
+
 class ReplayBuffer:
     """Stores past experiences for experience replay."""
     def __init__(self, capacity=MEMORY_SIZE):
@@ -98,9 +92,7 @@ class ReplayBuffer:
     def __len__(self):
         return len(self.buffer)
 
-# ===========================
-# Independent Q-Learning Agent
-# ===========================
+
 class IQLAgent:
     """Independent Q-Learning agent for multi-agent environments."""
     def __init__(self, obs_dim, act_dim, device="cpu", lr=LR, gamma=GAMMA, epsilon=EPSILON_START, eps_decay=EPSILON_DECAY):
@@ -120,7 +112,6 @@ class IQLAgent:
         self.update_count = 0
 
     def soft_update_target(self, tau=0.01):
-        # Polyak averaging: target = (1-tau)*target + tau*source
         for targ, src in zip(self.target_qnet.parameters(), self.qnet.parameters()):
             targ.data.copy_(targ.data * (1.0 - tau) + src.data * tau)
 
@@ -151,10 +142,8 @@ class IQLAgent:
 
         self.last_loss = float(loss.item())
 
-        # soft update occasionally (you may want to do this every N updates instead)
         self.update_count += 1
-        # Example: soft update every update with small tau OR hard update every N updates
-        # Here we use a small tau each update:
+
         self.soft_update_target(tau=0.01)
 
 def run_test_episode(env, agents, device="cpu", render=False):
@@ -176,9 +165,7 @@ def run_test_episode(env, agents, device="cpu", render=False):
 
     return total_rewards
 
-# ===========================
-# Multi-Agent IQL Training Loop
-# ===========================
+
 def train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE):
     num_agents = env.unwrapped.n_agents
     agents = []
@@ -252,7 +239,6 @@ def train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE):
                 f"agent_{i}_loss": agents[i].last_loss if agents[i].last_loss is not None else 0.0
             })
 
-        # -------- Optional Test Episode every 500 eps --------
         if ep % 500 == 0:
             test_rewards = run_test_episode(env, agents, device=device)
             print(f"[TEST] Episode {ep}: mean test reward = {np.mean(test_rewards):.2f}, per agent = {test_rewards}")
@@ -260,7 +246,6 @@ def train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE):
                 wandb.log({f"agent_{i}_test_reward": r, "episode": ep})
 
 
-        # -------- Save model checkpoints every 1000 episodes --------
         import os
         if ep % 500 == 0:
             save_dir = "./checkpoints"
@@ -277,15 +262,11 @@ def train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE):
 
 if __name__ == "__main__":
 
-    # ===========================
-    # Environment setup
-    # ===========================
+
     env_conf = "Foraging-8x8-2p-4f-v3"
     env = gym.make(env_conf)
 
-    # ===========================
-    # WandB initialization
-    # ===========================
+
     run = wandb.init(
         project="LBF_proves",
         config={
@@ -304,26 +285,10 @@ if __name__ == "__main__":
         sync_tensorboard=True,
         save_code=True,
     )
-    # ===========================
-    # Run training
-    # ===========================
+
     agents, rewards_history = train_iql(env, n_episodes=MAX_EPISODES, device=DEVICE)
 
-    # ===========================
-    # Plot learning curves
-    # ===========================
-    # plt.figure(figsize=(10, 5))
-    # for i in range(env.unwrapped.n_agents):
-    #     plt.plot(rewards_history[i], label=f"Agent {i}")
-    # plt.xlabel("Episode")
-    # plt.ylabel("Total Reward")
-    # plt.title("Learning Curves")
-    # plt.legend()
-    # plt.show()
-
-    # ===========================
-    # Cleanup
-    # ===========================
+   
     wandb.finish()
     env.close()
 
