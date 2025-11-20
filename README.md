@@ -16,19 +16,19 @@ Communication related articles
 - https://github.com/uoe-agents/epymarl (codi)
 
 Hierarchical rl
-https://arxiv.org/abs/1901.08492
-https://www.cs.toronto.edu/~hinton/absps/dh93.pdf
-https://arxiv.org/abs/1703.01161
-https://arxiv.org/abs/1703.03400
+- https://arxiv.org/abs/1901.08492
+- https://www.cs.toronto.edu/~hinton/absps/dh93.pdf
+- https://arxiv.org/abs/1703.01161
+- https://arxiv.org/abs/1703.03400
 
 
-# python3 src/main.py --config=ia2c_ns --env-config=gymma with env_args.time_limit=50 env_args.key="lbforaging:Foraging-15x15-5p-5f-coop-v3"
+// python3 src/main.py --config=ia2c_ns --env-config=gymma with env_args.time_limit=50 env_args.key="lbforaging:Foraging-15x15-5p-5f-coop-v3"
 
 
 
-# python3 src/main.py     --config=ia2c     --env-config=gymma     with env_args.time_limit=50          env_args.key="lbforaging:Foraging-15x15-5p-5f-coop-v3"          evaluate=True          checkpoint_path="results/models/ia2c_seed250291744_lbforagingForaging-15x15-5p-5f-coop-v3_2025-11-15 180831.324893"              test_nepisode=1        render=True
+// python3 src/main.py     --config=ia2c     --env-config=gymma     with env_args.time_limit=50          env_args.key="lbforaging:Foraging-15x15-5p-5f-coop-v3"          evaluate=True          checkpoint_path="results/models/ia2c_seed250291744_lbforagingForaging-15x15-5p-5f-coop-v3_2025-11-15 180831.324893"              test_nepisode=1        render=True
 
 
-# python3 src/main.py     --config=iql    --env-config=gymma     with env_args.time_limit=50          env_args.key="lbforaging:Foraging-8x8-2p-3f-v3"          evaluate=True          checkpoint_path="results/models/iql_seed343862886_lbforagingForaging-8x8-2p-3f-v3_2025-11-11 214021.871485"              test_nepisode=1        render=True
+// python3 src/main.py     --config=iql    --env-config=gymma     with env_args.time_limit=50          env_args.key="lbforaging:Foraging-8x8-2p-3f-v3"          evaluate=True          checkpoint_path="results/models/iql_seed343862886_lbforagingForaging-8x8-2p-3f-v3_2025-11-11 214021.871485"              test_nepisode=1        render=True
 
 
