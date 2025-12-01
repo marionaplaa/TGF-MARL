@@ -12,7 +12,7 @@ import imageio
 from IA2C import MAX_EPISODES
 
 ENV_CONF = "Foraging-8x8-2p-3f-v3"
-CHECKPOINT_DIR = "./checkpoints_ind"
+CHECKPOINT_DIR = "./checkpoints_ctde"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 NUM_EPISODES = 100      # set to 1 for one episode (with GIF)
 SAVE_GIF = (NUM_EPISODES == 1)  # automatically make GIF only if one episode
@@ -73,7 +73,6 @@ def plot_lbf_observation_tuple(obs, env_conf, save_path):
     plt.close(fig)
 
 class MAA2CAgent:
-    """Wrapper for a trained A2C agent."""
     def __init__(self, obs_dim, act_dim, model_path, device='cpu'):
         self.device = device
         from IA2C import ActorCritic  
@@ -99,8 +98,8 @@ def evaluate_agents(num_episodes=1, save_gif=False):
     # Load all trained agents
     agents = []
     for i in range(num_agents):
-        model_path = os.path.join(CHECKPOINT_DIR, f"MAA2C_agent{i}_episode{MODEL_EPISODE}.pth")
-        # model_path = os.path.join(CHECKPOINT_DIR, f"agent{i}_episode{MODEL_EPISODE}.pth")
+        # model_path = os.path.join(CHECKPOINT_DIR, f"MAA2C_agent{i}_episode{MODEL_EPISODE}.pth")
+        model_path = os.path.join(CHECKPOINT_DIR, f"agent{i}_episode{MODEL_EPISODE}.pth")
 
         agent = MAA2CAgent(obs_shape, act_shape, model_path, device=DEVICE)
         agents.append(agent)
@@ -178,8 +177,5 @@ def evaluate_agents(num_episodes=1, save_gif=False):
         "team_mean": mean_rewards.mean()
     }
 
-# =====================================================
-# Run evaluation
-# =====================================================
 if __name__ == "__main__":
     results = evaluate_agents(num_episodes=NUM_EPISODES, save_gif=SAVE_GIF)
