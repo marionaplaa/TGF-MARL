@@ -1,0 +1,110 @@
+exclude: null
+grid-search:
+  "--config":
+    # - "iql"
+    # - "iql_ns"
+    - "ia2c"
+    - "ia2c_ns"
+    - "ippo"
+    - "ippo_ns" 
+    # - "maddpg"
+    # - "maddpg_ns" 
+    - "coma" 
+    - "coma_ns"
+    - "maa2c"
+    - "maa2c_ns"
+    - "mappo"
+    - "mappo_ns"
+    # - "qmix"
+    # - "qmix_ns"
+    # - "vdn"
+    # - "vdn_ns"
+    
+  t_max:  40050000 #4050000
+    
+grid-search-groups:
+  env0:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-10x10-2p-2f-v3
+    - env_args.time_limit: 50
+
+  env1:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-10x10-2p-2f-coop-v3
+    - env_args.time_limit: 50
+
+  env2:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-2s-10x10-2p-2f-v3
+    - env_args.time_limit: 50
+
+  env3:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-2s-10x10-2p-2f-coop-v3
+    - env_args.time_limit: 50
+
+
+  env4:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-12x12-3p-3f-v3
+    - env_args.time_limit: 50
+
+  env5:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-12x12-3p-3f-coop-v3
+    - env_args.time_limit: 50
+
+  env6:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-2s-12x12-3p-3f-v3
+    - env_args.time_limit: 50
+
+  env7:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-2s-12x12-3p-3f-coop-v3
+    - env_args.time_limit: 50
+
+
+  env8:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-15x15-4p-4f-v3
+    - env_args.time_limit: 50
+
+  env9:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-15x15-4p-4f-coop-v3
+    - env_args.time_limit: 50
+
+  env10:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-2s-15x15-4p-4f-v3
+    - env_args.time_limit: 50
+
+  env11:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-2s-15x15-4p-4f-coop-v3
+    - env_args.time_limit: 50
+
+
+  env12:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-18x18-5p-4f-v3
+    - env_args.time_limit: 50
+
+  env13:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-18x18-5p-4f-coop-v3
+    - env_args.time_limit: 50
+
+  env14:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-2s-18x18-5p-4f-v3
+    - env_args.time_limit: 50
+
+  env15:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-2s-18x18-5p-4f-coop-v3
+    - env_args.time_limit: 50
+
+
+
