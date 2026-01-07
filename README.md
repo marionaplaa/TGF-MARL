@@ -120,15 +120,15 @@ These YAML files define search spaces for algorithms like Ray Tune or similar hy
 - `ppo_learner.py` - Proximal Policy Optimization
 - `maddpg_learner.py` - Multi-Agent DDPG
 
-### Controllers (src/controllers/)
+### Controllers
 - Multi-Agent Controllers (MAC) that manage agent neural networks
 - `basic_controller.py` - Basic RNN-based controller
 - `non_shared_controller.py` - Per-agent independent networks
 - `maddpg_controller.py` - MADDPG-specific controller
 
-### Runners (src/runners/)
+### Runners 
 - `episode_runner.py` - Single-environment episode generation
-- `parallel_runner.py` - Parallel environment execution for faster sampling
+- `parallel_runner.py` - Parallel environment execution for on-policy algorithms
 
 ## Logging & Monitoring
 Results are saved to `results/` with the experiment token as directory name.
