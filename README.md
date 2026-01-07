@@ -85,7 +85,7 @@ To evaluate a trained model:
 ```bash
 python3 main.py --config=ia2c_ns --env-config=gymma with env_args.time_limit=50 env_args.key="lbforaging:Foraging-15x15-4p-4f-v3" evaluate=True checkpoint_path="models_videos/ia2c_ns_seed1_lbforaging:Foraging-15x15-4p-4f-v3_2026-01-01 02:32:09.119328" test_nepisode=1
 ```
-The render option can be set in the 'default.yaml' file or directly in the command. The config file to be used, the environment configuration and the model path need to be specified. 
+The render option can be set in the `default.yaml` file or directly in the command. The config file to be used, the environment configuration and the model path need to be specified. 
 
 ## PROVES Folder
 
