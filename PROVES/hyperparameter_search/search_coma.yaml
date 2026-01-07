@@ -1,0 +1,38 @@
+exclude: null
+grid-search:
+
+  "--config":
+    # - "coma"
+    - "coma_ns"
+
+  common_reward:
+    - True
+
+  reward_scalarisation: 
+    - "mean"
+    - "sum"
+
+  lr:
+    - 0.0001
+    - 0.0003
+
+  hidden_dim:
+    - 64
+    - 128
+
+  entropy_coef:
+    - 0.01
+    - 0.001
+  
+  q_nstep:
+    - 5
+    - 10
+    - 1
+    
+grid-search-groups:
+  env0:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-10x10-2p-2f-v3
+    - env_args.time_limit: 50
+
+

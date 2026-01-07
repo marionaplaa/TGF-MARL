@@ -1,0 +1,40 @@
+exclude: null
+grid-search:
+
+  "--config":
+    - "vdn"
+    - "vdn_ns"
+
+  common_reward:
+    - True
+
+  reward_scalarisation:
+    - "sum"
+    - "mean"
+
+  lr:
+    - 0.0001
+    - 0.0003
+
+  buffer_size:
+    - 1000
+    - 5000
+    - 10000
+
+
+  evaluation_epsilon:
+    - 0.0
+    - 0.05
+  
+  epsilon_finish:
+    - 0.01
+    - 0.05
+
+    
+grid-search-groups:
+  env0:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-10x10-2p-2f-v3
+    - env_args.time_limit: 50
+
+

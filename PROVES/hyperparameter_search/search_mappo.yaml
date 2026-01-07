@@ -1,0 +1,34 @@
+exclude: null
+grid-search:
+
+  "--config":
+    - "mappo"
+    - "mappo_ns"
+
+  lr:
+    - 0.0005
+    - 0.0003
+
+  entropy_coef:
+    - 0.01
+    - 0.001
+
+  hidden_dim:
+    - 64
+    - 128
+
+  target_update_interval_or_tau:
+    - 0.01
+    - 200
+
+  epochs:
+    - 2
+    - 4
+    
+grid-search-groups:
+  env0:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-10x10-2p-2f-v3
+    - env_args.time_limit: 50
+
+

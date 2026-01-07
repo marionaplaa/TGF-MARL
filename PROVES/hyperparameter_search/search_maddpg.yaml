@@ -1,0 +1,31 @@
+exclude: null
+grid-search:
+
+  "--config":
+    - "maddpg"
+    - "maddpg_ns"
+
+  lr:
+    - 0.0005
+    - 0.0003
+
+  buffer_size:
+    - 20000
+    - 50000
+    - 10000
+
+  hidden_dim:
+    - 64
+    - 128
+
+  batch_size:
+    - 32
+    - 64
+    
+grid-search-groups:
+  env0:
+    - "--env-config": "gymma"
+    - env_args.key: lbforaging:Foraging-10x10-2p-2f-v3
+    - env_args.time_limit: 50
+
+
