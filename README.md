@@ -75,7 +75,7 @@ To run a hyperparameter search or multiple scripts at the same time:
 ```bash
 python3 search.py run --config=search_ia2c_ns.yaml --seeds 2 locally
 ```
-'--seeds x' determines the number of seeds used with that algorithm. 
+`--seeds x` determines the number of seeds used with that algorithm. 
 
 
 ### Evaluation / Video Recording
