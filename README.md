@@ -69,16 +69,23 @@ pip install -r env_requirements.txt
 
 **Example:** Train IA2C with non-shared parameters on LBF
 ```bash
-...??
+python src/main.py --config=ia2c_ns --env-config=gymma with env_args.time_limit=50 env_args.key="lbforaging:Foraging-8x8-2p-3f-v3"
 ```
+To run a hyperparameter search or multiple scripts at the same time: 
+```bash
+python3 search.py run --config=search_ia2c_ns.yaml --seeds 2 locally
+```
+'--seeds x' determines the number of seeds used with that algorithm. 
+
 
 ### Evaluation / Video Recording
 
-To evaluate a trained model and optionally save videos:
+To evaluate a trained model:
 
 ```bash
-...??
+python3 main.py --config=ia2c_ns --env-config=gymma with env_args.time_limit=50 env_args.key="lbforaging:Foraging-15x15-4p-4f-v3" evaluate=True checkpoint_path="models_videos/ia2c_ns_seed1_lbforaging:Foraging-15x15-4p-4f-v3_2026-01-01 02:32:09.119328" test_nepisode=1
 ```
+The render option can be set in the 'default.yaml' file or directly in the command. The config file to be used, the environment configuration and the model path need to be specified. 
 
 ## PROVES Folder
 
