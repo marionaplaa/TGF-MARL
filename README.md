@@ -62,23 +62,22 @@ pip install -r env_requirements.txt
 ```
 
 
-## Running Experiments
 
-### Basic Training Run
+### Training
 
 
-**Example:** Train IA2C with non-shared parameters on LBF
+Train IA2C with non-shared parameters on LBF:
 ```bash
-python src/main.py --config=ia2c_ns --env-config=gymma with env_args.time_limit=50 env_args.key="lbforaging:Foraging-8x8-2p-3f-v3"
+python3 src/main.py --config=ia2c_ns --env-config=gymma with env_args.time_limit=50 env_args.key="lbforaging:Foraging-8x8-2p-3f-v3"
 ```
-To run a hyperparameter search or multiple scripts at the same time: 
+To run a hyperparameter search: 
 ```bash
 python3 search.py run --config=search_ia2c_ns.yaml --seeds 2 locally
 ```
 `--seeds x` determines the number of seeds used with that algorithm. 
 
 
-### Evaluation / Video Recording
+### Evaluation 
 
 To evaluate a trained model:
 
@@ -87,9 +86,9 @@ python3 main.py --config=ia2c_ns --env-config=gymma with env_args.time_limit=50 
 ```
 The render option can be set in the `default.yaml` file or directly in the command. The config file to be used, the environment configuration and the model path need to be specified. 
 
-## PROVES Folder
+## ENV_FILES Folder
 
-The `PROVES` folder contains proof-of-concept experiments and hyperparameter search configurations:
+The `ENV_FILES` folder contains proof-of-concept experiments and hyperparameter search configurations:
 
 ### Files
 
