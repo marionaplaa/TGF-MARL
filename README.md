@@ -9,34 +9,52 @@ All experiments are built using the [EPyMARL library](https://github.com/uoe-age
 ## Repository Structure
 
 ```
-TGF-MARL/
+TFG-MARL/
 ├── epymarl/              # EPyMARL framework (main training code)
 │   ├── src/
 │   │   ├── main.py       # Entrypoint for experiments
 │   │   ├── run.py        # Training loop orchestration
+│   │   ├── search.py     # Hyperparameter search orchestration
 │   │   ├── learners/     # Algorithm implementations (QLearner, etc.)
 │   │   ├── controllers/  # Multi-agent controllers (MAC)
 │   │   ├── runners/      # Environment interactions
 │   │   ├── components/   # Replay buffer, transforms, scheduling
 │   │   ├── envs/         # Environment wrappers
 │   │   ├── modules/      # Neural network modules (mixers, agents)
-│   │   └── utils/        # Utilities (logging, rewards, etc.)
+│   │   ├── utils/        # Utilities (logging, rewards, etc.)
+│   │   ├── config/       # Configuration templates
+│   │   └── models_videos/ # Saved trained models and videos
 │   ├── requirements.txt  # Python dependencies
-└── PROVES/               # Proof-of-concept & experiment configurations
-    ├── LBF.ipynb         # Jupyter notebook for LBF environment analysis
-    ├── experiments.yaml  # Experiment configuration 
-    └── hyperparameter_search/  # Hyperparameter search configs
-        ├── search_ia2c.yaml
-        ├── search_ia2c_ns.yaml
-        ├── search_iql.yaml
-        ├── search_iql_ns.yaml
-        ├── search_qmix.yaml
-        ├── search_vdn.yaml
-        ├── search_coma.yaml
-        ├── search_maa2c.yaml
-        ├── search_maddpg.yaml
-        ├── search_mappo.yaml
-        └── search_ippo.yaml
+│   └── results/          # Training results and logs
+├── ENV_FILES/            # Experiment configurations & analysis
+│   ├── LBF.ipynb         # Jupyter notebook for LBF environment analysis
+│   ├── default.yaml      # Default configuration
+│   ├── experiments.yaml  # Experiment configuration
+│   ├── algs/             # Algorithm-specific configs
+│   │   ├── ia2c.yaml
+│   │   ├── ia2c_ns.yaml
+│   │   ├── iql.yaml
+│   │   ├── iql_ns.yaml
+│   │   ├── qmix.yaml
+│   │   ├── vdn.yaml
+│   │   ├── coma.yaml
+│   │   ├── maa2c.yaml
+│   │   ├── maddpg.yaml
+│   │   ├── mappo.yaml
+│   │   └── ippo.yaml
+│   └── hyperparameter_search/  # Hyperparameter search configs
+│       ├── search_ia2c.yaml
+│       ├── search_ia2c_ns.yaml
+│       ├── search_iql.yaml
+│       ├── search_iql_ns.yaml
+│       ├── search_qmix.yaml
+│       ├── search_vdn.yaml
+│       ├── search_coma.yaml
+│       ├── search_maa2c.yaml
+│       ├── search_maddpg.yaml
+│       ├── search_mappo.yaml
+│       └── search_ippo.yaml
+└── lb-foraging/          # Level-Based Foraging environment
 ```
 
 ## Setup & Installation
@@ -65,15 +83,18 @@ pip install -r env_requirements.txt
 
 ### Training
 
-
 Train IA2C with non-shared parameters on LBF:
 ```bash
+cd epymarl
 python3 src/main.py --config=ia2c_ns --env-config=gymma with env_args.time_limit=50 env_args.key="lbforaging:Foraging-8x8-2p-3f-v3"
 ```
+
 To run a hyperparameter search: 
 ```bash
-python3 search.py run --config=search_ia2c_ns.yaml --seeds 2 locally
+cd epymarl
+python3 src/search.py run --config=search_ia2c_ns.yaml --seeds 2 locally
 ```
+
 `--seeds x` determines the number of seeds used with that algorithm. 
 
 
@@ -84,32 +105,44 @@ To evaluate a trained model:
 ```bash
 python3 main.py --config=ia2c_ns --env-config=gymma with env_args.time_limit=50 env_args.key="lbforaging:Foraging-15x15-4p-4f-v3" evaluate=True checkpoint_path="models_videos/ia2c_ns_seed1_lbforaging:Foraging-15x15-4p-4f-v3_2026-01-01 02:32:09.119328" test_nepisode=1
 ```
-The render option can be set in the `default.yaml` file or directly in the command. The config file to be used, the environment configuration and the model path need to be specified. 
+
+The render option can be set in the `config/default.yaml` file or directly in the command. The config file to be used, the environment configuration and the model path need to be specified. 
 
 ## ENV_FILES Folder
 
-The `ENV_FILES` folder contains proof-of-concept experiments and hyperparameter search configurations:
+The `ENV_FILES` folder contains experiment configurations and hyperparameter search setup:
 
 ### Files
 
 - **LBF.ipynb**: Jupyter notebook for interactive exploration and visualization of Level-Based Foraging experiments. Used to understand agent's observations, reward function and to try different LBF configurations.
 
+- **default.yaml**: Default configuration settings for training runs.
+
 - **experiments.yaml**: Example experiment configuration file showing how to structure multi-run experiment definitions with different seeds and hyperparameters.
 
+- **algs/**: Contains algorithm-specific configuration files for each supported algorithm:
+  - `ia2c.yaml` / `ia2c_ns.yaml` - Independent A2C with optional non-shared parameters
+  - `iql.yaml` / `iql_ns.yaml` - Independent Q-Learning with optional non-shared parameters
+  - `qmix.yaml` - QMIX (value mixing)
+  - `vdn.yaml` - VDN (value decomposition)
+  - `coma.yaml` - COMA (counterfactual multi-agent)
+  - `maa2c.yaml` - Multi-Agent A2C
+  - `maddpg.yaml` - MADDPG (Multi-Agent DDPG)
+  - `mappo.yaml` - MAPPO (Multi-Agent PPO)
+  - `ippo.yaml` - Independent PPO
+
 - **hyperparameter_search/**: Contains hyperparameter search configurations (YAML files) for each algorithm:
-  - `search_ia2c.yaml` - Independent A2C hyperparameter ranges
-  - `search_ia2c_ns.yaml` - Independent A2C with non-shared parameters
-  - `search_iql.yaml` - Independent Q-Learning hyperparameter ranges
-  - `search_iql_ns.yaml` - Independent Q-Learning with non-shared parameters
-  - `search_qmix.yaml` - QMIX (value mixing) hyperparameter ranges
-  - `search_vdn.yaml` - VDN (value decomposition) hyperparameter ranges
-  - `search_coma.yaml` - COMA (counterfactual multi-agent) hyperparameter ranges
+  - `search_ia2c.yaml`, `search_ia2c_ns.yaml` - Independent A2C hyperparameter ranges
+  - `search_iql.yaml`, `search_iql_ns.yaml` - Independent Q-Learning hyperparameter ranges
+  - `search_qmix.yaml` - QMIX hyperparameter ranges
+  - `search_vdn.yaml` - VDN hyperparameter ranges
+  - `search_coma.yaml` - COMA hyperparameter ranges
   - `search_maa2c.yaml` - Multi-Agent A2C hyperparameter ranges
   - `search_maddpg.yaml` - MADDPG hyperparameter ranges
   - `search_mappo.yaml` - MAPPO hyperparameter ranges
   - `search_ippo.yaml` - Independent PPO hyperparameter ranges
 
-These YAML files define search spaces for algorithms like Ray Tune or similar hyperparameter optimization frameworks.
+These YAML files define search spaces for hyperparameter optimization frameworks.
 
 ## Key EPyMARL Components
 
