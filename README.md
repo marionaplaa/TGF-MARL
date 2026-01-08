@@ -6,6 +6,16 @@ This repository contains experiments for multi-agent reinforcement learning (MAR
 
 All experiments are built using the [EPyMARL library](https://github.com/uoe-agents/epymarl), a PyTorch-based framework for multi-agent RL research.
 
+## Environment: Level-Based Foraging (LBF)
+
+**Level-Based Foraging (LBF)** ([GitHub](https://github.com/semitable/lb-foraging)) is a grid-based multi-agent environment in which agents move across a map to collect food items. Although the task may appear simple, the dynamics of food collection introduce complex coordination challenges. Each agent and each food item is assigned a level, and a food item can only be collected if the sum of the levels of all participating agents is greater than or equal to the level of that food. When a collection occurs, all agents that contributed to the required level receive a reward proportional to their own level.
+
+The environment supports multiple configurations for the grid size, number of agents, number of apples, cooperative setting, and partial observability. In the standard setting, an agent may collect food individually if its level is high enough, which creates competitive incentives. In contrast, the cooperative setting disallows individual collection, forcing agents to coordinate in order to achieve any reward. In the standard setting, the environment has full observability, which means that each agent's observation equals the full state. With the partial observability setting, each agent's view is limited to two cells in every direction, a patch of 5×5 cells.
+
+Agents have six discrete actions: *do nothing*, *load*, and *move* in one of the four cardinal directions (up, down, left, right). Each agent receives observations that encode both food and agent information. For every food item and every agent (including itself), the observation includes the x-position, y-position, and level. Thus, an agent's observation vector consists of the positions and levels of all food items, the agent's own information, and the information of all other agents.
+
+Environment configurations follow the naming scheme: `lbforaging:Foraging-{grid_size}x{grid_size}-{sight}s-{players}p-{food}f-{coop}-v3`
+
 ## Repository Structure
 
 ```
