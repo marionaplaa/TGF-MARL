@@ -1,4 +1,4 @@
-# TGF-MARL
+# TFG-MARL
 
 This repository contains experiments for multi-agent reinforcement learning (MARL) algorithms, built on top of the **EPyMARL** framework. The experiments are primarily focused on cooperative multi-agent tasks in the **Level-Based Foraging (LBF)** environment.
 
